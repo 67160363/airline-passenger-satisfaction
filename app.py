@@ -22,10 +22,9 @@ model = load_model()
 st.title("✈️ Airline Passenger Satisfaction")
 st.markdown("""
 ระบบทำนายความพึงพอใจของผู้โดยสารสายการบิน โดยใช้เทคโนโลยี **Machine Learning**
-กรอกข้อมูลการเดินทางด้านล่างเพื่อประเมินความรู้สึกของผู้โดยสาร
 """)
 
-# --- 4. ส่วนรับข้อมูล (Input Validation ตามเกณฑ์) ---
+# --- 4. ส่วนรับข้อมูลจากผู้ใช้งาน ---
 st.subheader("📋 ข้อมูลการเดินทาง")
 
 col1, col2 = st.columns(2)
@@ -38,7 +37,7 @@ with col1:
 
 with col2:
     customer_class = st.selectbox("ชั้นที่นั่ง (Class)", ["Eco", "Eco Plus", "Business"])
-    flight_distance = st.number_input("ระยะทางบิน (Flight Distance - km)", min_value=1, max_value=10000, value=500)
+    flight_distance = st.number_input("ระยะทางบิน (Flight Distance)", min_value=1, max_value=10000, value=500)
     departure_delay = st.number_input("ดีเลย์ขาออก (นาที)", min_value=0, max_value=1500, value=0)
     arrival_delay = st.number_input("ดีเลย์ขาเข้า (นาที)", min_value=0, max_value=1500, value=0)
 
@@ -52,8 +51,9 @@ leg_room = st.slider("พื้นที่วางขา (Leg room)", 1, 5, 3)
 
 # --- 5. การประมวลผลและการแสดงผล ---
 if st.button("ประเมินความพึงพอใจ", type="primary"):
-    # เตรียม DataFrame สำหรับโมเดล
-    input_df = pd.DataFrame({
+    # สร้าง DataFrame เบื้องต้นจาก Input
+    input_data = {
+        'id': [0], # ใส่ค่าหลอกไว้เผื่อโมเดลถามหา
         'Gender': [gender],
         'Customer Type': [customer_type],
         'Age': [age],
@@ -61,7 +61,7 @@ if st.button("ประเมินความพึงพอใจ", type="pri
         'Class': [customer_class],
         'Flight Distance': [flight_distance],
         'Inflight wifi service': [wifi_service],
-        'Departure/Arrival convenience': [3], # ค่ากลาง
+        'Departure/Arrival convenience': [3],
         'Ease of Online booking': [booking_ease],
         'Gate location': [3],
         'Food and drink': [3],
@@ -76,20 +76,38 @@ if st.button("ประเมินความพึงพอใจ", type="pri
         'Cleanliness': [3],
         'Departure Delay in Minutes': [departure_delay],
         'Arrival Delay in Minutes': [arrival_delay]
-    })
-
-    # ทำนายผล
-    prediction = model.predict(input_df)[0]
-    prob = model.predict_proba(input_df)[0] # แสดงความมั่นใจ (Bonus)
-
-    st.divider()
+    }
     
-    if prediction == 1:
-        st.success(f"🎉 **ผลการทำนาย: ผู้โดยสารพึงพอใจ (Satisfied)**")
-        st.metric("ความมั่นใจของ AI", f"{prob[1]*100:.2f}%")
-    else:
-        st.warning(f"⚠️ **ผลการทำนาย: ไม่พึงพอใจ (Neutral or Dissatisfied)**")
-        st.metric("ความมั่นใจของ AI", f"{prob[0]*100:.2f}%")
+    df = pd.DataFrame(input_data)
 
-# --- ส่วนท้าย (Footnote) ---
+    # --- ฟังก์ชันพิเศษ: ตรวจสอบและเรียงคอลัมน์ให้ตรงตามที่โมเดลต้องการ ---
+    try:
+        # ตรวจสอบว่าโมเดลต้องการคอลัมน์ชื่ออะไรบ้าง
+        if hasattr(model, 'feature_names_in_'):
+            expected_features = model.feature_names_in_
+            
+            # ถ้าคอลัมน์ไหนขาดไป ให้เติมด้วยเลข 0
+            for col in expected_features:
+                if col not in df.columns:
+                    df[col] = 0
+            
+            # เรียงลำดับคอลัมน์ให้ตรงเป๊ะตามที่โมเดลเคยเห็นตอนฝึกสอน
+            df = df[expected_features]
+        
+        # ทำนายผล
+        prediction = model.predict(df)[0]
+        
+        st.divider()
+        
+        # ตรวจสอบค่าที่ส่งออกมา (บางโมเดลส่งเป็นเลข 0/1 บางโมเดลส่งเป็นข้อความ)
+        if str(prediction) == '1' or str(prediction).lower() == 'satisfied':
+            st.success(f"🎉 **ผลการทำนาย: ผู้โดยสารพึงพอใจ (Satisfied)**")
+        else:
+            st.warning(f"⚠️ **ผลการทำนาย: ไม่พึงพอใจ (Neutral or Dissatisfied)**")
+            
+    except Exception as e:
+        st.error(f"เกิดข้อผิดพลาดในการทำนาย: {e}")
+        st.info("คำแนะนำ: ตรวจสอบว่าไฟล์โมเดลที่อัปโหลดตรงกับเวอร์ชันที่ใช้ใน Colab หรือไม่")
+
+# --- ส่วนท้าย ---
 st.caption("จัดทำโดย: 67160363 PHOKIN KETMAYOON | Final Project Machine Learning")
