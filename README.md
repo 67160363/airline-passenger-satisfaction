@@ -4,7 +4,7 @@ Machine Learning Deployment Project - Final Assignment
 
 🚀 Live Demo
 
-คุณสามารถเข้าชมเว็บไซต์ตัวอย่างได้ที่นี่: คลิกเพื่อเปิดเว็บไซต์
+คุณสามารถเข้าชมเว็บไซต์ตัวอย่างได้ที่นี่: [คลิกเพื่อเปิดเว็บไซต์](https://airline-passenger-satisfaction-dqpuytudw5gz6nln5fbt6m.streamlit.app/)
 
 📌 1. การนิยามปัญหา (Problem Definition)
 
