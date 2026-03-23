@@ -30,6 +30,6 @@ Deployment: Streamlit Cloud
 
 👤 จัดทำโดย
 
-ชื่อ-นามสกุล: ภคิน เกตุพยุง (PHOKIN KETMAYOON)
+ชื่อ-นามสกุล: โภคิน เกตุมะยูร (PHOKIN KETMAYOON)
 
 รหัสนักศึกษา: 67160363
